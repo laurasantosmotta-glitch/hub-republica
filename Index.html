@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub da República</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #121214;
+      --card-bg: #1e1e24;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #2e2e38;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-live {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      border: 1px solid var(--accent);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cleaning-list {
+      list-style: none;
+    }
+
+    .cleaning-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .cleaning-item.done {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .btn-check {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .residents-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .resident-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .resident-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .resident-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 28px;
+      width: 90%;
+      max-width: 420px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .pin-display {
+      letter-spacing: 12px;
+      font-size: 2rem;
+      margin: 16px 0;
+      min-height: 48px;
+      color: var(--accent);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .num-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-color);
+      color: white;
+      font-size: 1.4rem;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .num-btn:active {
+      background: var(--primary);
+    }
+
+    .statement-details {
+      text-align: left;
+      margin: 16px 0;
+      background: rgba(0,0,0,0.2);
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    .statement-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .statement-row.total {
+      border-top: 1px solid var(--border-color);
+      padding-top: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    .qr-container {
+      margin: 16px 0;
+      background: white;
+      padding: 12px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .btn-action {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Hub da República <span class="badge-live">Painel Cozinha</span></h1>
+    <div id="clock" style="color: var(--text-muted); font-weight: 500;"></div>
+  </header>
+
+  <div class="grid-container">
+    
+    <div class="card">
+      <div class="card-title">Consumo dos Últimos 6 Meses</div>
+      <canvas id="chartConsumo" height="200"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Escala de Limpeza da Semana</div>
+      <ul class="cleaning-list">
+        <li class="cleaning-item">
+          <div>
+            <strong>Cozinha & Lixo</strong><br>
+            <small style="color: var(--text-muted);">Responsável: Laura</small>
+          </div>
+          <button class="btn-check" onclick="toggleClean(this)">Concluir</button>
+        </li>
+        <li class="cleaning-item">
+          <div>
+            <strong>Banheiro Principal</strong><br>
+            <small style="color: var(--text-muted);">Responsável: Bartho</small>
+          </div>
+          <button class="btn-check" onclick="toggleClean(this)">Concluir</button>
+        </li>
+        <li class="cleaning-item">
+          <div>
+            <strong>Sala & Varanda</strong><br>
+            <small style="color: var(--text-muted);">Responsável: Morador 3</small>
+          </div>
+          <button class="btn-check" onclick="toggleClean(this)">Concluir</button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Área do Morador (Financeiro)</div>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+        Selecione o seu nome para acessar seu extrato privado e QR Code PIX.
+      </p>
+      <div class="residents-grid">
+        <div class="resident-card" onclick="openAuth('Laura')">
+          <div class="resident-avatar">L</div>
+          <strong>Laura</strong>
+        </div>
+        <div class="resident-card" onclick="openAuth('Bartho')">
+          <div class="resident-avatar" style="background:#10b981;">B</div>
+          <strong>Bartho</strong>
+        </div>
+        <div class="resident-card" onclick="openAuth('Morador 3')">
+          <div class="resident-avatar" style="background:#f59e0b;">M3</div>
+          <strong>Morador 3</strong>
+        </div>
+        <div class="resident-card" onclick="openAuth('Morador 4')">
+          <div class="resident-avatar" style="background:#ef4444;">M4</div>
+          <strong>Morador 4</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <h3 id="modalResidentName">Acesso Restrito</h3>
+      <p id="pinInstructions" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+        Digite seu PIN de 4 dígitos:
+      </p>
+      
+      <div class="pin-display" id="pinDisplay">••••</div>
+
+      <div class="numpad">
+        <button class="num-btn" onclick="pressNum('1')">1</button>
+        <button class="num-btn" onclick="pressNum('2')">2</button>
+        <button class="num-btn" onclick="pressNum('3')">3</button>
+        <button class="num-btn" onclick="pressNum('4')">4</button>
+        <button class="num-btn" onclick="pressNum('5')">5</button>
+        <button class="num-btn" onclick="pressNum('6')">6</button>
+        <button class="num-btn" onclick="pressNum('7')">7</button>
+        <button class="num-btn" onclick="pressNum('8')">8</button>
+        <button class="num-btn" onclick="pressNum('9')">9</button>
+        <button class="num-btn" style="color: var(--danger)" onclick="clearPin()">C</button>
+        <button class="num-btn" onclick="pressNum('0')">0</button>
+        <button class="num-btn" style="color: var(--accent)" onclick="submitPin()">✓</button>
+      </div>
+      
+      <button class="btn-action btn-close" onclick="closeModals()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="statementModal">
+    <div class="modal">
+      <h3 id="statementTitle">Extrato Individual</h3>
+      
+      <div class="statement-details">
+        <div class="statement-row">
+          <span>Aluguel + Condomínio:</span>
+          <span>R$ 650,00</span>
+        </div>
+        <div class="statement-row">
+          <span>Luz + Água + Net (Fração):</span>
+          <span>R$ 142,50</span>
+        </div>
+        <div class="statement-row" id="rowMulta" style="display:none; color: var(--danger);">
+          <span>Ajuste / Multa individual:</span>
+          <span id="valMulta">R$ 0,00</span>
+        </div>
+        <div class="statement-row total">
+          <span>Total a Pagar:</span>
+          <span id="totalValue">R$ 792,50</span>
+        </div>
+      </div>
+
+      <div class="qr-container">
+        <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=CHAVE_PIX_EXEMPLO" alt="QR Code PIX">
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">Chave PIX: republica@email.com</p>
+
+      <button class="btn-action" onclick="alert('Copiado com sucesso!')">Copiar Chave PIX</button>
+      <button class="btn-action btn-close" onclick="closeModals()">Sair / Trancar</button>
+    </div>
+  </div>
+
+  <script>
+    const residentsData = {
+      'Laura': { rent: 650, bills: 142.50, penalty: 0 },
+      'Bartho': { rent: 650, bills: 142.50, penalty: 0 },
+      'Morador 3': { rent: 650, bills: 142.50, penalty: 25.00 },
+      'Morador 4': { rent: 650, bills: 142.50, penalty: 0 }
+    };
+
+    let selectedResident = '';
+    let currentPinInput = '';
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const ctx = document.getElementById('chartConsumo').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov'],
+        datasets: [
+          { label: 'Luz (R$)', data: [210, 240, 195, 260, 230, 215], borderColor: '#f59e0b', tension: 0.3 },
+          { label: 'Água (R$)', data: [110, 105, 120, 115, 140, 125], borderColor: '#3b82f6', tension: 0.3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#f3f4f6' } } },
+        scales: {
+          x: { ticks: { color: '#9ca3af' }, grid: { color: '#2e2e38' } },
+          y: { ticks: { color: '#9ca3af' }, grid: { color: '#2e2e38' } }
+        }
+      }
+    });
+
+    function toggleClean(btn) {
+      const item = btn.parentElement;
+      item.classList.toggle('done');
+      btn.innerText = item.classList.contains('done') ? 'Desfazer' : 'Concluir';
+    }
+
+    function openAuth(name) {
+      selectedResident = name;
+      currentPinInput = '';
+      document.getElementById('modalResidentName').innerText = 'Acesso: ' + name;
+      
+      const savedPin = localStorage.getItem('pin_' + name);
+      if(!savedPin) {
+        document.getElementById('pinInstructions').innerText = 'Primeiro Acesso! Crie seu PIN de 4 dígitos:';
+      } else {
+        document.getElementById('pinInstructions').innerText = 'Digite seu PIN de 4 dígitos:';
+      }
+
+      updatePinDisplay();
+      document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function pressNum(num) {
+      if(currentPinInput.length < 4) {
+        currentPinInput += num;
+        updatePinDisplay();
+      }
+    }
+
+    function clearPin() {
+      currentPinInput = '';
+      updatePinDisplay();
+    }
+
+    function updatePinDisplay() {
+      let dots = '';
+      for(let i = 0; i < currentPinInput.length; i++) dots += '•';
+      document.getElementById('pinDisplay').innerText = dots || '••••';
+    }
+
+    function submitPin() {
+      if(currentPinInput.length !== 4) return;
+
+      const savedPin = localStorage.getItem('pin_' + selectedResident);
+
+      if(!savedPin) {
+        localStorage.setItem('pin_' + selectedResident, currentPinInput);
+        alert('PIN cadastrado com sucesso!');
+        showStatement();
+      } else if(savedPin === currentPinInput) {
+        showStatement();
+      } else {
+        alert('PIN incorreto!');
+        clearPin();
+      }
+    }
+
+    function showStatement() {
+      document.getElementById('authModal').style.display = 'none';
+      const data = residentsData[selectedResident];
+      
+      document.getElementById('statementTitle').innerText = 'Extrato - ' + selectedResident;
+      
+      const total = data.rent + data.bills + data.penalty;
+      document.getElementById('totalValue').innerText = 'R$ ' + total.toFixed(2);
+
+      if(data.penalty > 0) {
+        document.getElementById('rowMulta').style.display = 'flex';
+        document.getElementById('valMulta').innerText = 'R$ ' + data.penalty.toFixed(2);
+      } else {
+        document.getElementById('rowMulta').style.display = 'none';
+      }
+
+      document.getElementById('statementModal').style.display = 'flex';
+    }
+
+    function closeModals() {
+      document.getElementById('authModal').style.display = 'none';
+      document.getElementById('statementModal').style.display = 'none';
+      currentPinInput = '';
+    }
+  </script>
+</body>
+</html>
